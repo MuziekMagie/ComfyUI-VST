@@ -68,58 +68,78 @@ def extract_parameter_info(plugin) -> dict:
     params_info = {}
 
     for name, param in plugin.parameters.items():
-        valid_values = getattr(param, "valid_values", None)
-        units = getattr(param, "units", "") or getattr(param, "label", "")
-        raw_val = float(getattr(param, "raw_value", 0.0))
-        
-        # 1. Detect Boolean (Toggle)
-        # Check if valid_values are explicitly [False, True] or [True, False]
-        is_bool = False
-        if valid_values and len(valid_values) == 2:
-            if all(isinstance(v, bool) for v in valid_values):
-                is_bool = True
+        param_type = getattr(param, "type", str)
+        units = getattr(param, "label", "") or getattr(param, "units", "")
+        current_value = getattr(param, "value", None)
 
-        if is_bool:
-            current_val = getattr(param, "value", False)
+        if param_type is bool:
             params_info[name] = {
                 "name": name,
-                "value": bool(current_val),
+                "value": bool(current_value) if current_value is not None else False,
                 "is_boolean": True,
-                "units": str(units)
+                "units": str(units),
             }
-        
-        # 2. Detect Categorical (Dropdown)
-        elif valid_values and len(valid_values) > 0:
-            first_val = str(valid_values[0]).strip().lower()
-            is_text_based = any(c.isalpha() for c in first_val if c not in ".-")
-            
-            if len(valid_values) <= 16 or is_text_based:
-                current_val = getattr(param, "value", valid_values[0])
-                params_info[name] = {
-                    "name": name,
-                    "value": str(current_val),
-                    "is_choice": True,
-                    "valid_values": [str(v) for v in valid_values],
-                    "units": str(units)
-                }
+            continue
+
+        if param_type is float:
+            min_val = getattr(param, "min_value", 0.0)
+            max_val = getattr(param, "max_value", 1.0)
+            step = getattr(param, "step_size", None) or getattr(
+                param, "approximate_step_size", None
+            )
+
+            # Use actual value if available, otherwise raw_value mapped to range
+            if current_value is not None:
+                nice_val = float(current_value)
             else:
-                is_bool = False # Fall through to slider
-        
-        # 3. Detect Numeric (Slider) - if not caught by bool or choice
-        if name not in params_info:
-            min_val = getattr(param, "min_value", 0.0) or 0.0
-            max_val = getattr(param, "max_value", 1.0) or 1.0
-            nice_val = float(min_val) + (raw_val * (float(max_val) - float(min_val)))
+                raw_val = float(getattr(param, "raw_value", 0.0))
+                nice_val = float(min_val) + (
+                    raw_val * (float(max_val) - float(min_val))
+                )
 
             params_info[name] = {
                 "name": name,
                 "value": nice_val,
                 "is_choice": False,
                 "is_boolean": False,
-                "min": float(min_val),
-                "max": float(max_val),
-                "units": str(units)
+                "min": float(min_val) if min_val is not None else 0.0,
+                "max": float(max_val) if max_val is not None else 1.0,
+                "step": float(step) if step is not None else None,
+                "units": str(units),
             }
+            continue
+
+        valid_values = getattr(param, "valid_values", None)
+        if valid_values and len(valid_values) > 0:
+            # Use current value or first valid value
+            if current_value is not None:
+                current_str = str(current_value)
+            else:
+                current_str = str(valid_values[0])
+
+            params_info[name] = {
+                "name": name,
+                "value": current_str,
+                "is_choice": True,
+                "valid_values": [str(v) for v in valid_values],
+                "units": str(units),
+            }
+            continue
+
+        min_val = getattr(param, "min_value", 0.0) or 0.0
+        max_val = getattr(param, "max_value", 1.0) or 1.0
+        raw_val = float(getattr(param, "raw_value", 0.0))
+        nice_val = float(min_val) + (raw_val * (float(max_val) - float(min_val)))
+
+        params_info[name] = {
+            "name": name,
+            "value": nice_val,
+            "is_choice": False,
+            "is_boolean": False,
+            "min": float(min_val),
+            "max": float(max_val),
+            "units": str(units)
+        }
 
     return params_info
 
