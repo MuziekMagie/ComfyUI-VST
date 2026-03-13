@@ -263,7 +263,7 @@ class VSTParameters(io.ComfyNode):
             category="audio/vst",
             inputs=[
                 io.String.Input("parameters", default=""),
-                io.String.Input("dynamic_values_json", default="{}", multiline=True),
+                io.String.Input("dynamic_values_json", default="{}", socketless=True),
             ],
             outputs=[
                 io.Custom("VST_PARAMS").Output("VST_PARAMS"),

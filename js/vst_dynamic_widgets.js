@@ -41,10 +41,20 @@ app.registerExtension({
           }
           this.vstWidgets = []
 
-          const jsonWidget = this.widgets.find((w) => w.name === 'dynamic_values_json')
-          if (jsonWidget) {
-            jsonWidget.type = 'hidden'
-            jsonWidget.computeSize = () => [0, -4]
+          const jsonWidgetIdx = this.widgets?.findIndex((w) => w.name === 'dynamic_values_json')
+          if (jsonWidgetIdx !== -1 && jsonWidgetIdx !== undefined) {
+            const jsonWidget = this.widgets[jsonWidgetIdx]
+
+            if (jsonWidget.inputEl) {
+              jsonWidget.inputEl.style.display = 'none'
+            }
+
+            jsonWidget.type = 'converted-widget'
+            jsonWidget.computeSize = () => [0, -2]
+            jsonWidget.draw = () => {}
+
+            this.widgets.splice(jsonWidgetIdx, 1)
+            this.widgets.push(jsonWidget)
           }
 
           for (const param of paramsArray) {
