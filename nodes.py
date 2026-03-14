@@ -46,10 +46,10 @@ class VSTLoader(io.ComfyNode):
                 io.Float.Input("timeout", default=10.0, min=1.0, max=60.0, step=1.0),
             ],
             outputs=[
-                io.Custom("VST_PLUGIN").Output("PLUGIN"),
-                io.String.Output("PARAMETERS"),
-                io.Boolean.Output("IS_EFFECT"),
-                io.Boolean.Output("IS_INSTRUMENT"),
+                io.Custom("VST_PLUGIN").Output("plugin"),
+                io.Custom("VST_PARAMETER_SCHEMA").Output("parameter_schema"),
+                io.Boolean.Output("is_effect"),
+                io.Boolean.Output("is_instrument"),
             ],
         )
 
@@ -110,9 +110,9 @@ class VSTInspector(io.ComfyNode):
                 io.Custom("VST_PLUGIN").Input("plugin"),
             ],
             outputs=[
-                io.String.Output("SUMMARY"),
-                io.String.Output("PARAMETERS_JSON"),
-                io.String.Output("PARAMETER_NAMES"),
+                io.String.Output("summary"),
+                io.Custom("VST_PARAMETER_SCHEMA").Output("parameter_schema"),
+                io.String.Output("parameter_names"),
             ],
         )
 
@@ -200,7 +200,7 @@ class VSTManualParameters(io.ComfyNode):
                 ),
             ],
             outputs=[
-                io.Custom("VST_PARAMS").Output("PARAMS"),
+                io.Custom("VST_SETTINGS").Output("vst_settings"),
             ],
         )
 
@@ -262,20 +262,20 @@ class VSTParameters(io.ComfyNode):
             display_name="VST Parameters",
             category="audio/vst",
             inputs=[
-                io.String.Input("parameters", default=""),
+                io.Custom("VST_PARAMETER_SCHEMA").Input("parameter_schema"),
                 io.String.Input("dynamic_values_json", default="{}", socketless=True),
             ],
             outputs=[
-                io.Custom("VST_PARAMS").Output("VST_PARAMS"),
+                io.Custom("VST_SETTINGS").Output("vst_settings"),
             ],
         )
 
     @classmethod
-    def fingerprint_inputs(cls, parameters, dynamic_values_json="{}", **kwargs):
+    def fingerprint_inputs(cls, parameter_schema, dynamic_values_json="{}", **kwargs):
         return dynamic_values_json
 
     @classmethod
-    def execute(cls, parameters, dynamic_values_json="{}", **kwargs):
+    def execute(cls, parameter_schema, dynamic_values_json="{}", **kwargs):
         # We unpack the JSON string sent from the Javascript sliders
         clean_params = {}
         try:
@@ -302,7 +302,7 @@ class VSTApplyEffect(io.ComfyNode):
             inputs=[
                 io.Audio.Input("audio"),
                 io.Custom("VST_PLUGIN").Input("plugin"),
-                io.Custom("VST_PARAMS").Input("parameters", optional=True),
+                io.Custom("VST_SETTINGS").Input("vst_settings", optional=True),
                 io.Int.Input("buffer_size", default=8192, min=512, max=65536, step=512),
                 io.Boolean.Input("reset", default=True),
             ],
@@ -313,7 +313,7 @@ class VSTApplyEffect(io.ComfyNode):
 
     @classmethod
     def execute(
-        cls, audio, plugin, parameters=None, buffer_size=8192, reset=True, **kwargs
+        cls, audio, plugin, vst_settings=None, buffer_size=8192, reset=True, **kwargs
     ):
         if not PEDALBOARD_AVAILABLE:
             raise RuntimeError("Pedalboard library not installed")
@@ -350,8 +350,8 @@ class VSTApplyEffect(io.ComfyNode):
                     print(f"Warning: Could not set parameter '{param_name}': {e}")
 
         # Apply parameters from explicitly linked dictionary (VSTParameters node)
-        if parameters:
-            for param_name, value in parameters.items():
+        if vst_settings:
+            for param_name, value in vst_settings.items():
                 apply_param(plugin, param_name, value)
 
         # Apply parameters from the dynamically generated JS widgets (if placed directly on this node)
@@ -381,7 +381,7 @@ class VSTApplyEffect(io.ComfyNode):
 
     @classmethod
     def fingerprint_inputs(
-        cls, audio, plugin, parameters=None, buffer_size=8192, reset=True
+        cls, audio, plugin, vst_settings=None, buffer_size=8192, reset=True
     ):
         m = hashlib.sha256()
         # Hash audio waveform data
@@ -398,9 +398,9 @@ class VSTApplyEffect(io.ComfyNode):
         plugin_name = getattr(plugin, "name", str(plugin))
         m.update(plugin_name.encode())
         # Hash parameters
-        if parameters:
-            for key in sorted(parameters.keys()):
-                m.update(f"{key}:{parameters[key]}".encode())
+        if vst_settings:
+            for key in sorted(vst_settings.keys()):
+                m.update(f"{key}:{vst_settings[key]}".encode())
         # Hash buffer settings
         m.update(f"buffer_size:{buffer_size}:reset:{reset}".encode())
         return m.digest().hex()
