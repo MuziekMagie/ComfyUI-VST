@@ -49,10 +49,10 @@ Loads a VST3 plugin from disk. Auto-scans system VST directories and provides a 
 
 **Outputs:**
 
-- `PLUGIN` (VST_PLUGIN): The loaded plugin object
-- `PARAMETERS` (STRING): JSON string with parameter information
-- `IS_EFFECT` (BOOLEAN): True if plugin is an audio effect
-- `IS_INSTRUMENT` (BOOLEAN): True if plugin is a synthesizer/instrument
+- `plugin` (VST_PLUGIN): The loaded plugin object
+- `parameter_schema` (VST_PARAMETER_SCHEMA): Parameter schema/definitions
+- `is_effect` (BOOLEAN): True if plugin is an audio effect
+- `is_instrument` (BOOLEAN): True if plugin is a synthesizer/instrument
 
 **Scanned directories:**
 
@@ -70,9 +70,11 @@ Inspects a loaded plugin to display its parameters and metadata.
 
 **Outputs:**
 
-- `SUMMARY` (STRING): Human-readable parameter list
-- `PARAMETERS_JSON` (STRING): Full parameter metadata as JSON
-- `PARAMETER_NAMES` (STRING): Comma-separated list of parameter names
+- `summary` (STRING): Human-readable parameter list
+- `parameter_schema` (VST_PARAMETER_SCHEMA): Parameter schema (custom type)
+- `parameter_schema_dict` (DICT): Parameter schema as Python dictionary
+- `parameter_schema_json` (JSON): Parameter schema as JSON string
+- `parameter_names` (STRING): Comma-separated list of parameter names
 
 ### 3. VST Manual Parameters (VSTManualParameters)
 
@@ -87,7 +89,7 @@ Creates a parameter dictionary using autogrowing name-value pairs.
 
 **Outputs:**
 
-- `PARAMS` (VST_PARAMS): Parameter dictionary for Apply VST Effect
+- `vst_settings` (VST_SETTINGS): Parameter values for Apply VST Effect
 
 **Usage:**
 
@@ -113,12 +115,12 @@ _Note: This is required because the node needs to "see" the plugin output once t
 
 **Inputs:**
 
-- `parameters` (STRING): Parameter configuration string
+- `parameter_schema` (VST_PARAMETER_SCHEMA): Parameter schema from VSTLoader/VSTInspector
 - `dynamic_values_json` (STRING, multiline): JSON string of parameter values from frontend widgets
 
 **Outputs:**
 
-- `VST_PARAMS` (VST_PARAMS): Parameter dictionary
+- `vst_settings` (VST_SETTINGS): Parameter values dictionary
 
 **Note:** This node requires the frontend JavaScript extension to generate parameter widgets dynamically based on the connected plugin.
 
@@ -132,7 +134,7 @@ Applies a VST plugin effect to audio.
 
 - `audio` (AUDIO): Input audio from ComfyUI
 - `plugin` (VST_PLUGIN): Loaded plugin
-- `parameters` (VST_PARAMS, optional): Parameter settings from VST Manual Parameters or VST Parameters
+- `vst_settings` (VST_SETTINGS, optional): Parameter settings from VST Manual Parameters or VST Parameters
 - `buffer_size` (INT): Processing buffer size [512-65536], default 8192
 - `reset` (BOOLEAN): Reset plugin state before processing, default True
 
