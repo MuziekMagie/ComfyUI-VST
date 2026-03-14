@@ -86,18 +86,28 @@ app.registerExtension({
               let max = param.max ?? 1.0
 
               let range = max - min
-              let step = 0.01
-              let precision = 4
+              let step = param.step
+              let precision = 2
 
-              if (range >= 10) {
-                step = 1.0
-                precision = 2
-              } else if (range >= 2) {
-                step = 0.1
-                precision = 2
+              if (step !== undefined && step !== null) {
+                const stepStr = step.toString()
+                if (stepStr.includes('.')) {
+                  precision = stepStr.split('.')[1].length
+                } else {
+                  precision = 0
+                }
+                precision = Math.min(precision, 6)
               } else {
-                step = 0.01
-                precision = 2
+                if (range >= 10) {
+                  step = 1.0
+                  precision = 0
+                } else if (range >= 2) {
+                  step = 0.1
+                  precision = 1
+                } else {
+                  step = 0.01
+                  precision = 2
+                }
               }
 
               const widget = this.addWidget(
@@ -107,7 +117,7 @@ app.registerExtension({
                 (val) => {
                   if (this.packDynamicWidgets) this.packDynamicWidgets()
                 },
-                { min: min, max: max, step: step, precision },
+                { min: min, max: max, step2: step, precision },
               )
               if (units) widget.label = `${name} (${units})`
               this.vstWidgets.push(widget)
