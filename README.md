@@ -144,21 +144,7 @@ Applies a VST plugin effect to audio.
 
 ### Basic VST Effect Chain
 
-```
-[Load VST Plugin] ──────────────────────────┐
-      │                                      │
-      ├─[Inspect VST Plugin]                 │
-      │          │                           │
-      │          └──> Check parameter names   │
-      │                                       │
-      ├───────────────────────────────────────┼──[Apply VST Effect]──[Audio Output]
-                                              │        │
-[VST Manual Parameters]                       │        │
-   name_0: "mix"         ─────────────────────┤        │
-   value_0: [Float 0.5]  ─────────────────────┘        │
-   name_1: "room_size"  ────────────────────────────────┤
-   value_1: [Float 0.3]  ───────────────────────────────┘
-```
+![Basic example workflow](https://github.com/user-attachments/assets/0377c68e-a122-4ea9-9487-2b2a878b4dff)
 
 ### Workflow Steps
 
