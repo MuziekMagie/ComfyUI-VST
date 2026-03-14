@@ -112,6 +112,8 @@ class VSTInspector(io.ComfyNode):
             outputs=[
                 io.String.Output("summary"),
                 io.Custom("VST_PARAMETER_SCHEMA").Output("parameter_schema"),
+                io.Custom("DICT").Output("parameter_schema_dict"),
+                io.Custom("JSON").Output("parameter_schema_json"),
                 io.String.Output("parameter_names"),
             ],
         )
@@ -161,7 +163,7 @@ class VSTInspector(io.ComfyNode):
         params_json = json.dumps(params_info, indent=2)
         param_names = ", ".join(params_info.keys())
 
-        return io.NodeOutput(summary, params_json, param_names)
+        return io.NodeOutput(summary, params_json, params_info, params_json, param_names)
 
 
 class VSTManualParameters(io.ComfyNode):
