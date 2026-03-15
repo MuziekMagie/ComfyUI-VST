@@ -18,7 +18,7 @@ ComfyUI custom nodes for audio processing using VST3 and Audio Unit plugins via 
 
 ```bash
 cd ComfyUI/custom_nodes
-git clone https://github.com/yourusername/ComfyUI-VST.git
+git clone https://github.com/MuziekMagie/ComfyUI-VST.git
 ```
 
 2. Install dependencies:
