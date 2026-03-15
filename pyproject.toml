@@ -1,0 +1,14 @@
+[project]
+name = "comfyui-vst"
+description = "ComfyUI nodes for loading and applying VST and Audio Unit plugins to audio within ComfyUI workflows."
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["pedalboard>=0.9.0"]
+
+[project.urls]
+Repository = "https://github.com/MuziekMagie/ComfyUI-VST"
+
+[tool.comfy]
+PublisherId = "muziekmagie"
+DisplayName = "ComfyUI-VST"
+Icon = ""
